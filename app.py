@@ -5,7 +5,7 @@ from flask_wtf.csrf import CSRFProtect
 from config import Config
 import os
 
-# Inicializar extensiones
+
 db = SQLAlchemy()
 login_manager = LoginManager()
 csrf = CSRFProtect()
@@ -14,17 +14,17 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
-    # Inicializar extensiones con la app
+   
     db.init_app(app)
     login_manager.init_app(app)
     csrf.init_app(app)
     
-    # Configurar login manager
+    
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Por favor inicia sesión para acceder a esta página.'
     login_manager.login_message_category = 'info'
     
-    # Registrar blueprints
+    
     from blueprints.auth import auth_bp
     from blueprints.main import main_bp
     from blueprints.products import products_bp

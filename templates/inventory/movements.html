@@ -13,7 +13,7 @@
     </a>
 </div>
 
-<!-- Search -->
+
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
         <div class="row g-3">
@@ -35,7 +35,7 @@
     </div>
 </div>
 
-<!-- Movements Table -->
+
 <div class="card border-0 shadow-sm">
     <div class="card-body">
         <div class="table-responsive">
@@ -151,7 +151,7 @@
 
 {% block extra_js %}
 <script>
-// Búsqueda en tiempo real
+
 document.getElementById('searchInput').addEventListener('input', function() {
     const filter = this.value.toLowerCase();
     const rows = document.querySelectorAll('.searchable-item');
@@ -166,7 +166,7 @@ document.getElementById('searchInput').addEventListener('input', function() {
     });
 });
 
-// Filtro por tipo
+
 document.getElementById('typeFilter').addEventListener('change', function() {
     const filter = this.value;
     const rows = document.querySelectorAll('.searchable-item');
