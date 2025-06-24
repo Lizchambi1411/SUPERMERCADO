@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Venta - SuperMarket Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 fw-bold text-dark">Nueva Venta</h1>
+        <p class="text-muted mb-0">Registrar nueva transacción</p>
+    </div>
+    <a href="{{ url_for('sales.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Volver a Ventas
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- Búsqueda de Productos -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-search me-2"></i>Buscar Productos
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="input-group mb-3">
+                    <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                    <input type="text" class="form-control form-control-lg" 
+                           placeholder="Buscar por nombre o código de barras..." 
+                           id="productSearch">
+                </div>
+                <div id="searchResults" class="list-group"></div>
+            </div>
+        </div>
+
+        <!-- Carrito de Compras -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-cart me-2"></i>Carrito de Compras
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="cartTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Producto</th>
+                                <th>Precio</th>
+                                <th>Cantidad</th>
+                                <th>Subtotal</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cartItems">
+                            <tr id="emptyCart">
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    <i class="bi bi-cart-x" style="font-size: 3rem;"></i>
+                                    <p class="mt-2">El carrito está vacío</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen y Pago -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-calculator me-2"></i>Resumen de Venta
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="saleForm">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.customer_id.id }}" class="form-label">Cliente</label>
+                        {{ form.customer_id(class="form-select", id=form.customer_id.id) }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.payment_method.id }}" class="form-label">Método de Pago</label>
+                        {{ form.payment_method(class="form-select", id=form.payment_method.id, required=true) }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.discount_amount.id }}" class="form-label">Descuento</label>
+                        <div class="input-group">
+                            <span class="input-group-text">Bs</span>
+                            {{ form.discount_amount(class="form-control", id=form.discount_amount.id, value="0.00", step="0.01") }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.notes.id }}" class="form-label">Notas</label>
+                        {{ form.notes(class="form-control", id=form.notes.id, rows="3") }}
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">Bs0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Descuento:</span>
+                        <span id="discount">Bs0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 fw-bold h5">
+                        <span>Total:</span>
+                        <span id="total">Bs0.00</span>
+                    </div>
+
+                    <input type="hidden" name="cart_data" id="cartData">
+                    
+                    <button type="submit" class="btn btn-success btn-lg w-100" id="processBtn" disabled>
+                        <i class="bi bi-check-circle me-2"></i>Procesar Venta
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let cart = [];
+let subtotal = 0;
+
+// Búsqueda de productos
+document.getElementById('productSearch').addEventListener('input', function() {
+    const query = this.value;
+    const resultsDiv = document.getElementById('searchResults');
+    
+    if (query.length < 2) {
+        resultsDiv.innerHTML = '';
+        return;
+    }
+    
+    fetch(`{{ url_for('sales.api_products_search') }}?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(products => {
+            resultsDiv.innerHTML = '';
+            products.forEach(product => {
+                const item = document.createElement('div');
+                item.className = 'list-group-item list-group-item-action';
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">${product.name}</h6>
+                            <small class="text-muted">Stock: ${product.stock} ${product.unit}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold">Bs${product.price.toFixed(2)}</div>
+                            <button class="btn btn-sm btn-primary" onclick="addToCart(${product.id}, '${product.name}', ${product.price}, '${product.unit}', ${product.stock})">
+                                <i class="bi bi-plus"></i> Agregar
+                            </button>
+                        </div>
+                    </div>
+                `;
+                resultsDiv.appendChild(item);
+            });
+        });
+});
+
+// Agregar al carrito
+function addToCart(id, name, price, unit, stock) {
+    const existingItem = cart.find(item => item.product_id === id);
+    
+    if (existingItem) {
+        if (existingItem.quantity < stock) {
+            existingItem.quantity++;
+        } else {
+            alert('Stock insuficiente');
+            return;
+        }
+    } else {
+        cart.push({
+            product_id: id,
+            name: name,
+            price: price,
+            quantity: 1,
+            unit: unit,
+            stock: stock
+        });
+    }
+    
+    updateCart();
+    document.getElementById('productSearch').value = '';
+    document.getElementById('searchResults').innerHTML = '';
+}
+
+// Actualizar carrito
+function updateCart() {
+    const cartItems = document.getElementById('cartItems');
+    const emptyCart = document.getElementById('emptyCart');
+    
+    if (cart.length === 0) {
+        emptyCart.style.display = '';
+        document.getElementById('processBtn').disabled = true;
+    } else {
+        emptyCart.style.display = 'none';
+        document.getElementById('processBtn').disabled = false;
+    }
+    
+    // Limpiar items existentes (excepto el mensaje vacío)
+    const existingItems = cartItems.querySelectorAll('tr:not(#emptyCart)');
+    existingItems.forEach(item => item.remove());
+    
+    subtotal = 0;
+    
+    cart.forEach((item, index) => {
+        const itemSubtotal = item.quantity * item.price;
+        subtotal += itemSubtotal;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <div class="fw-semibold">${item.name}</div>
+                <small class="text-muted">${item.unit}</small>
+            </td>
+            <td>Bs${item.price.toFixed(2)}</td>
+            <td>
+                <div class="input-group input-group-sm" style="width: 120px;">
+                    <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(${index}, -1)">-</button>
+                    <input type="number" class="form-control text-center" value="${item.quantity}" min="1" max="${item.stock}" 
+                           onchange="setQuantity(${index}, this.value)">
+                    <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(${index}, 1)">+</button>
+                </div>
+            </td>
+            <td class="fw-semibold">Bs${itemSubtotal.toFixed(2)}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart(${index})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
+        cartItems.appendChild(row);
+    });
+    
+    updateTotals();
+}
+
+// Actualizar cantidad
+function updateQuantity(index, change) {
+    const item = cart[index];
+    const newQuantity = item.quantity + change;
+    
+    if (newQuantity <= 0) {
+        removeFromCart(index);
+    } else if (newQuantity <= item.stock) {
+        item.quantity = newQuantity;
+        updateCart();
+    } else {
+        alert('Stock insuficiente');
+    }
+}
+
+// Establecer cantidad
+function setQuantity(index, quantity) {
+    const item = cart[index];
+    const newQuantity = parseInt(quantity);
+    
+    if (newQuantity <= 0) {
+        removeFromCart(index);
+    } else if (newQuantity <= item.stock) {
+        item.quantity = newQuantity;
+        updateCart();
+    } else {
+        alert('Stock insuficiente');
+        updateCart(); // Restaurar valor anterior
+    }
+}
+
+// Remover del carrito
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCart();
+}
+
+// Actualizar totales
+function updateTotals() {
+    const discountInput = document.getElementById('discount_amount');
+    const discount = parseFloat(discountInput.value) || 0;
+    const total = subtotal - discount;
+    
+    document.getElementById('subtotal').textContent = `Bs${subtotal.toFixed(2)}`;
+    document.getElementById('discount').textContent = `Bs${discount.toFixed(2)}`;
+    document.getElementById('total').textContent = `Bs${total.toFixed(2)}`;
+    
+    // Actualizar datos del carrito para envío
+    document.getElementById('cartData').value = JSON.stringify(cart);
+}
+
+// Event listener para descuento
+document.getElementById('discount_amount').addEventListener('input', updateTotals);
+
+// Validación del formulario
+document.getElementById('saleForm').addEventListener('submit', function(e) {
+    if (cart.length === 0) {
+        e.preventDefault();
+        alert('El carrito está vacío');
+        return false;
+    }
+    
+    const total = subtotal - (parseFloat(document.getElementById('discount_amount').value) || 0);
+    if (total < 0) {
+        e.preventDefault();
+        alert('El descuento no puede ser mayor al subtotal');
+        return false;
+    }
+    
+    return true;
+});
+
+// Inicializar
+updateCart();
+</script>
+{% endblock %}

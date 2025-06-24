@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Registro - SuperMarket Pro{% endblock %}
+
+{% block content %}
+<div class="min-vh-100 d-flex align-items-center justify-content-center py-5" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+    <div class="card shadow-lg border-0" style="max-width: 500px; width: 100%; border-radius: 20px;">
+        <div class="card-body p-5">
+            <!-- Logo -->
+            <div class="text-center mb-4">
+                <div class="bg-gradient d-inline-flex align-items-center justify-content-center rounded-circle mb-3" 
+                     style="width: 80px; height: 80px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="bi bi-person-plus text-white" style="font-size: 2rem;"></i>
+                </div>
+                <h2 class="fw-bold text-success mb-1">Crear Cuenta</h2>
+                <p class="text-muted">Únete a SuperMarket Pro</p>
+            </div>
+
+            <!-- Form -->
+            <form method="POST" class="needs-validation" novalidate>
+                {{ form.hidden_tag() }}
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.first_name.id }}" class="form-label fw-semibold">
+                            <i class="bi bi-person me-2"></i>Nombre
+                        </label>
+                        {{ form.first_name(class="form-control form-control-lg", id=form.first_name.id, required=true) }}
+                        {% if form.first_name.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.first_name.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.last_name.id }}" class="form-label fw-semibold">
+                            <i class="bi bi-person me-2"></i>Apellido
+                        </label>
+                        {{ form.last_name(class="form-control form-control-lg", id=form.last_name.id, required=true) }}
+                        {% if form.last_name.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.last_name.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.username.id }}" class="form-label fw-semibold">
+                        <i class="bi bi-at me-2"></i>Nombre de Usuario
+                    </label>
+                    {{ form.username(class="form-control form-control-lg", id=form.username.id, required=true) }}
+                    {% if form.username.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.username.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.email.id }}" class="form-label fw-semibold">
+                        <i class="bi bi-envelope me-2"></i>Correo Electrónico
+                    </label>
+                    {{ form.email(class="form-control form-control-lg", id=form.email.id, required=true) }}
+                    {% if form.email.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.email.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.role.id }}" class="form-label fw-semibold">
+                        <i class="bi bi-shield-check me-2"></i>Rol
+                    </label>
+                    {{ form.role(class="form-select form-select-lg", id=form.role.id, required=true) }}
+                    {% if form.role.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.role.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.password.id }}" class="form-label fw-semibold">
+                        <i class="bi bi-lock me-2"></i>Contraseña
+                    </label>
+                    <div class="input-group">
+                        {{ form.password(class="form-control form-control-lg", id=form.password.id, required=true) }}
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
+                            <i class="bi bi-eye" id="toggleIcon1"></i>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.password.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="{{ form.confirm_password.id }}" class="form-label fw-semibold">
+                        <i class="bi bi-lock-fill me-2"></i>Confirmar Contraseña
+                    </label>
+                    <div class="input-group">
+                        {{ form.confirm_password(class="form-control form-control-lg", id=form.confirm_password.id, required=true) }}
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirm_password')">
+                            <i class="bi bi-eye" id="toggleIcon2"></i>
+                        </button>
+                    </div>
+                    {% if form.confirm_password.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.confirm_password.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-lg w-100 text-white fw-semibold mb-3" 
+                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+                    <i class="bi bi-person-plus me-2"></i>Crear Cuenta
+                </button>
+            </form>
+
+            <!-- Login Link -->
+            <div class="text-center">
+                <p class="text-muted mb-0">
+                    ¿Ya tienes una cuenta? 
+                    <a href="{{ url_for('auth.login') }}" class="text-success fw-semibold text-decoration-none">
+                        Iniciar Sesión
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword(fieldId) {
+    const passwordField = document.getElementById(fieldId);
+    const toggleIcon = document.getElementById(fieldId === 'password' ? 'toggleIcon1' : 'toggleIcon2');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        toggleIcon.className = 'bi bi-eye-slash';
+    } else {
+        passwordField.type = 'password';
+        toggleIcon.className = 'bi bi-eye';
+    }
+}
+
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Password confirmation validation
+document.getElementById('confirm_password').addEventListener('input', function() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = this.value;
+    
+    if (password !== confirmPassword) {
+        this.setCustomValidity('Las contraseñas no coinciden');
+    } else {
+        this.setCustomValidity('');
+    }
+});
+</script>
+{% endblock %}

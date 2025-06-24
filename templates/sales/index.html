@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}Ventas - SuperMarket Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 fw-bold text-dark">Ventas</h1>
+        <p class="text-muted mb-0">Gestiona las transacciones del supermercado</p>
+    </div>
+    <a href="{{ url_for('sales.new') }}" class="btn btn-primary btn-lg">
+        <i class="bi bi-plus-circle me-2"></i>Nueva Venta
+    </a>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="card-text opacity-75 mb-1">Ventas Hoy</p>
+                        <h3 class="card-title fw-bold">Bs487.75</h3>
+                    </div>
+                    <i class="bi bi-currency-dollar" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="card-text opacity-75 mb-1">Transacciones</p>
+                        <h3 class="card-title fw-bold">24</h3>
+                    </div>
+                    <i class="bi bi-cart" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="card-text opacity-75 mb-1">Promedio</p>
+                        <h3 class="card-title fw-bold">Bs20.32</h3>
+                    </div>
+                    <i class="bi bi-calculator" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="card-text opacity-75 mb-1">Clientes</p>
+                        <h3 class="card-title fw-bold">18</h3>
+                    </div>
+                    <i class="bi bi-people" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Buscar ventas por número o cliente..." id="searchInput">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" id="statusFilter">
+                    <option value="">Todos los estados</option>
+                    <option value="completed">Completadas</option>
+                    <option value="pending">Pendientes</option>
+                    <option value="cancelled">Canceladas</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sales Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <style>
+        .sale-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.1rem;
+        }
+        .sale-card {
+            background: #e3f6fd;
+            border: 2px solid #03a9f4;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(3,169,244,0.08);
+            padding: 1.1rem 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            transition: box-shadow 0.2s;
+        }
+        .sale-card:hover {
+            box-shadow: 0 4px 16px rgba(3,169,244,0.18);
+        }
+        .sale-info {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+        .sale-number {
+            color: #03a9f4;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .sale-customer {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .sale-date {
+            color: #555;
+            font-size: 0.98rem;
+        }
+        .sale-total {
+            color: #1976d2;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .sale-payment {
+            font-size: 0.98rem;
+        }
+        .sale-status {
+            margin-left: 0.5rem;
+        }
+        .sale-actions {
+            display: flex;
+            gap: 0.3rem;
+        }
+        .icon-btn {
+            background: none;
+            border: none;
+            padding: 0.25rem 0.4rem;
+            cursor: pointer;
+            outline: none;
+        }
+        .icon-btn:focus {
+            outline: 2px solid #1976d233;
+        }
+        .icon-view {
+            color: #1976d2;
+            font-size: 1.25rem;
+        }
+        .icon-edit {
+            color: #ff9800;
+            font-size: 1.25rem;
+        }
+        .icon-receipt {
+            color: #00bcd4;
+            font-size: 1.25rem;
+        }
+        .icon-cancel {
+            color: #e53935;
+            font-size: 1.25rem;
+        }
+        </style>
+        <div class="sale-list">
+            {% for sale in sales.items %}
+            <div class="sale-card searchable-item">
+                <div class="sale-info">
+                    <div>
+                        <div class="sale-number">{{ sale.sale_number }}</div>
+                        <small class="text-muted">{{ sale.sale_items|length }} artículos</small>
+                    </div>
+                    <div class="sale-customer">
+                        <div class="avatar-circle bg-primary text-white me-2">
+                            {{ sale.customer.first_name[0] if sale.customer else 'G' }}{{ sale.customer.last_name[0] if sale.customer else 'C' }}
+                        </div>
+                        <span>{{ sale.customer.full_name if sale.customer else 'Cliente General' }}</span>
+                    </div>
+                    <div class="sale-date">
+                        {{ sale.sale_date.strftime('%d/%m/%Y') }}
+                        <small class="text-muted">{{ sale.sale_date.strftime('%H:%M') }}</small>
+                    </div>
+                    <div class="sale-total">Bs{{ "%.2f"|format(sale.total_amount) }}</div>
+                    <div class="sale-payment">
+                        {% if sale.payment_method == 'efectivo' %}
+                            💵 Efectivo
+                        {% elif sale.payment_method == 'tarjeta' %}
+                            💳 Tarjeta
+                        {% else %}
+                            🏦 Transferencia
+                        {% endif %}
+                    </div>
+                    <div class="sale-status">
+                        {% if sale.status == 'completed' %}
+                            <span class="badge bg-success">Completada</span>
+                        {% elif sale.status == 'pending' %}
+                            <span class="badge bg-warning">Pendiente</span>
+                        {% else %}
+                            <span class="badge bg-danger">Cancelada</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="sale-actions">
+                    <a href="{{ url_for('sales.view', id=sale.id) }}" class="icon-btn" title="Ver"><i class="bi bi-eye icon-view"></i></a>
+                    <a href="{{ url_for('sales.edit', id=sale.id) }}" class="icon-btn" title="Editar"><i class="bi bi-pencil icon-edit"></i></a>
+                    <a href="{{ url_for('sales.receipt', id=sale.id) }}" class="icon-btn" title="Recibo"><i class="bi bi-receipt icon-receipt"></i></a>
+                    {% if sale.status == 'completed' %}
+                    <form method="POST" action="{{ url_for('sales.cancel', id=sale.id) }}" class="d-inline" onsubmit="return confirm('¿Estás seguro de cancelar esta venta?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="icon-btn" title="Cancelar"><i class="bi bi-x-circle icon-cancel"></i></button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if sales.pages > 1 %}
+        <nav aria-label="Paginación de ventas">
+            <ul class="pagination justify-content-center">
+                {% if sales.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('sales.index', page=sales.prev_num) }}">Anterior</a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in sales.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != sales.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('sales.index', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">…</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if sales.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('sales.index', page=sales.next_num) }}">Siguiente</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Búsqueda en tiempo real
+document.getElementById('searchInput').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const rows = document.querySelectorAll('.searchable-item');
+    
+    rows.forEach(function(row) {
+        const text = row.textContent.toLowerCase();
+        if (text.includes(filter)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Filtro por estado
+document.getElementById('statusFilter').addEventListener('change', function() {
+    const filter = this.value;
+    const rows = document.querySelectorAll('.searchable-item');
+    
+    rows.forEach(function(row) {
+        if (!filter) {
+            row.style.display = '';
+        } else {
+            const badge = row.querySelector('.badge');
+            const status = badge.textContent.toLowerCase();
+            if ((filter === 'completed' && status.includes('completada')) ||
+                (filter === 'pending' && status.includes('pendiente')) ||
+                (filter === 'cancelled' && status.includes('cancelada'))) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

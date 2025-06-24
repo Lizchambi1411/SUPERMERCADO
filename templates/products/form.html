@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Producto{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ title }}</h2>
+    <form method="post">
+        {{ form.csrf_token }}
+        <div class="mb-3">
+            {{ form.name.label(class="form-label") }}
+            {{ form.name(class="form-control") }}
+            {% for error in form.name.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.description.label(class="form-label") }}
+            {{ form.description(class="form-control") }}
+            {% for error in form.description.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.barcode.label(class="form-label") }}
+            {{ form.barcode(class="form-control") }}
+            {% for error in form.barcode.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                {{ form.cost_price.label(class="form-label") }}
+                {{ form.cost_price(class="form-control") }}
+                {% for error in form.cost_price.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="col-md-4 mb-3">
+                {{ form.selling_price.label(class="form-label") }}
+                {{ form.selling_price(class="form-control") }}
+                {% for error in form.selling_price.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="col-md-4 mb-3">
+                {{ form.unit.label(class="form-label") }}
+                {{ form.unit(class="form-select") }}
+                {% for error in form.unit.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                {{ form.stock_quantity.label(class="form-label") }}
+                {{ form.stock_quantity(class="form-control") }}
+                {% for error in form.stock_quantity.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="col-md-4 mb-3">
+                {{ form.min_stock.label(class="form-label") }}
+                {{ form.min_stock(class="form-control") }}
+                {% for error in form.min_stock.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="col-md-4 mb-3">
+                {{ form.max_stock.label(class="form-label") }}
+                {{ form.max_stock(class="form-control") }}
+                {% for error in form.max_stock.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="mb-3">
+            {{ form.category_id.label(class="form-label") }}
+            {{ form.category_id(class="form-select") }}
+            {% for error in form.category_id.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.supplier_id.label(class="form-label") }}
+            {{ form.supplier_id(class="form-select") }}
+            {% for error in form.supplier_id.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="form-check mb-3">
+            {{ form.is_active(class="form-check-input") }}
+            {{ form.is_active.label(class="form-check-label") }}
+        </div>
+        <button type="submit" class="btn btn-gradient-success">Guardar</button>
+        <a href="{{ url_for('products.index') }}" class="btn btn-gradient-primary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

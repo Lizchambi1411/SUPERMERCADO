@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Movimientos de Inventario - SuperMarket Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 fw-bold text-dark">Movimientos de Inventario</h1>
+        <p class="text-muted mb-0">Historial de entradas, salidas y ajustes</p>
+    </div>
+    <a href="{{ url_for('inventory.add_movement') }}" class="btn btn-primary btn-lg">
+        <i class="bi bi-plus-circle me-2"></i>Nuevo Movimiento
+    </a>
+</div>
+
+<!-- Search -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Buscar movimientos..." id="searchInput">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" id="typeFilter">
+                    <option value="">Todos los tipos</option>
+                    <option value="entrada">Entradas</option>
+                    <option value="salida">Salidas</option>
+                    <option value="ajuste">Ajustes</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Movements Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Producto</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Motivo</th>
+                        <th>Usuario</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for movement in movements.items %}
+                    <tr class="searchable-item">
+                        <td>
+                            <div>{{ movement.movement_date.strftime('%d/%m/%Y') }}</div>
+                            <small class="text-muted">{{ movement.movement_date.strftime('%H:%M') }}</small>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">{{ movement.product.name }}</div>
+                            <small class="text-muted">{{ movement.product.category.name }}</small>
+                        </td>
+                        <td>
+                            {% if movement.movement_type == 'entrada' %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-arrow-up me-1"></i>Entrada
+                                </span>
+                            {% elif movement.movement_type == 'salida' %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-arrow-down me-1"></i>Salida
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-gear me-1"></i>Ajuste
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="fw-semibold">
+                            {% if movement.movement_type == 'entrada' %}
+                                <span class="text-success">+{{ movement.quantity }}</span>
+                            {% elif movement.movement_type == 'salida' %}
+                                <span class="text-danger">-{{ movement.quantity }}</span>
+                            {% else %}
+                                <span class="text-warning">{{ movement.quantity }}</span>
+                            {% endif %}
+                            {{ movement.product.unit }}
+                        </td>
+                        <td>
+                            <div>{{ movement.reason }}</div>
+                            {% if movement.notes %}
+                                <small class="text-muted">{{ movement.notes }}</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ movement.user.full_name }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if movements.pages > 1 %}
+        <nav aria-label="Paginación de movimientos">
+            <ul class="pagination justify-content-center">
+                {% if movements.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('inventory.movements', page=movements.prev_num) }}">Anterior</a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in movements.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != movements.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('inventory.movements', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">…</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if movements.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('inventory.movements', page=movements.next_num) }}">Siguiente</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+{% if not movements.items %}
+<div class="text-center py-5">
+    <i class="bi bi-arrow-left-right text-muted" style="font-size: 4rem;"></i>
+    <h4 class="text-muted mt-3">No hay movimientos registrados</h4>
+    <p class="text-muted">Comienza registrando tu primer movimiento de inventario</p>
+    <a href="{{ url_for('inventory.add_movement') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Nuevo Movimiento
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Búsqueda en tiempo real
+document.getElementById('searchInput').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const rows = document.querySelectorAll('.searchable-item');
+    
+    rows.forEach(function(row) {
+        const text = row.textContent.toLowerCase();
+        if (text.includes(filter)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Filtro por tipo
+document.getElementById('typeFilter').addEventListener('change', function() {
+    const filter = this.value;
+    const rows = document.querySelectorAll('.searchable-item');
+    
+    rows.forEach(function(row) {
+        if (!filter) {
+            row.style.display = '';
+        } else {
+            const badge = row.querySelector('.badge');
+            const type = badge.textContent.toLowerCase();
+            if (type.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

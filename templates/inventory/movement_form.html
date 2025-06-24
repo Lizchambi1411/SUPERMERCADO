@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Movimiento de Inventario - SuperMarket Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 fw-bold text-dark">Nuevo Movimiento de Inventario</h1>
+        <p class="text-muted mb-0">Registrar entrada, salida o ajuste de stock</p>
+    </div>
+    <a href="{{ url_for('inventory.movements') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Volver a Movimientos
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="POST" class="needs-validation" novalidate>
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.product_id.id }}" class="form-label fw-semibold">
+                                <i class="bi bi-box-seam me-2"></i>Producto *
+                            </label>
+                            {{ form.product_id(class="form-select form-select-lg", id=form.product_id.id, required=true) }}
+                            {% if form.product_id.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.product_id.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="{{ form.movement_type.id }}" class="form-label fw-semibold">
+                                <i class="bi bi-arrow-left-right me-2"></i>Tipo de Movimiento *
+                            </label>
+                            {{ form.movement_type(class="form-select form-select-lg", id=form.movement_type.id, required=true) }}
+                            {% if form.movement_type.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.movement_type.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="{{ form.quantity.id }}" class="form-label fw-semibold">
+                                <i class="bi bi-123 me-2"></i>Cantidad *
+                            </label>
+                            {{ form.quantity(class="form-control form-control-lg", id=form.quantity.id, required=true, min="1") }}
+                            {% if form.quantity.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.quantity.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="{{ form.reason.id }}" class="form-label fw-semibold">
+                                <i class="bi bi-chat-text me-2"></i>Motivo *
+                            </label>
+                            {{ form.reason(class="form-control form-control-lg", id=form.reason.id, required=true) }}
+                            {% if form.reason.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.reason.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-12">
+                            <label for="{{ form.notes.id }}" class="form-label fw-semibold">
+                                <i class="bi bi-journal-text me-2"></i>Notas Adicionales
+                            </label>
+                            {{ form.notes(class="form-control", id=form.notes.id, rows="3") }}
+                            {% if form.notes.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.notes.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Info Panel -->
+                    <div class="bg-light rounded p-4 mt-4">
+                        <h6 class="fw-bold mb-3">Información del Movimiento</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <i class="bi bi-arrow-up-circle text-success" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">Entrada</h6>
+                                    <small class="text-muted">Aumenta el stock</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <i class="bi bi-arrow-down-circle text-danger" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">Salida</h6>
+                                    <small class="text-muted">Reduce el stock</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <i class="bi bi-gear text-warning" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">Ajuste</h6>
+                                    <small class="text-muted">Establece cantidad exacta</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-end gap-3">
+                        <a href="{{ url_for('inventory.movements') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle me-2"></i>Registrar Movimiento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Movement type change handler
+document.getElementById('movement_type').addEventListener('change', function() {
+    const quantityLabel = document.querySelector('label[for="quantity"]');
+    const quantityInput = document.getElementById('quantity');
+    
+    switch(this.value) {
+        case 'entrada':
+            quantityLabel.innerHTML = '<i class="bi bi-plus-circle me-2"></i>Cantidad a Agregar *';
+            quantityInput.placeholder = 'Cantidad que ingresa al inventario';
+            break;
+        case 'salida':
+            quantityLabel.innerHTML = '<i class="bi bi-minus-circle me-2"></i>Cantidad a Retirar *';
+            quantityInput.placeholder = 'Cantidad que sale del inventario';
+            break;
+        case 'ajuste':
+            quantityLabel.innerHTML = '<i class="bi bi-gear me-2"></i>Cantidad Final *';
+            quantityInput.placeholder = 'Cantidad exacta que debe quedar';
+            break;
+        default:
+            quantityLabel.innerHTML = '<i class="bi bi-123 me-2"></i>Cantidad *';
+            quantityInput.placeholder = 'Ingrese la cantidad';
+    }
+});
+</script>
+{% endblock %}

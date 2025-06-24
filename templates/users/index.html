@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Usuarios - SuperMarket Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="h2 fw-bold text-dark">Usuarios</h1>
+        <p class="text-muted mb-0">Listado de usuarios registrados en el sistema</p>
+    </div>
+    <form class="d-flex align-items-center" method="get" action="{{ url_for('users.index') }}" style="gap:0.5rem;">
+        <input type="text" name="search" class="form-control" placeholder="Buscar usuario..." value="{{ request.args.get('search', '') }}" style="min-width:180px;">
+        <button type="submit" class="btn btn-outline-primary" title="Buscar"><i class="bi bi-search"></i></button>
+    </form>
+    <a href="{{ url_for('users.add') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-2"></i>Agregar Usuario
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-primary text-white py-3">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-people me-2"></i>Usuarios Registrados
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if users|length > 0 %}
+        <style>
+        .user-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+        }
+        .user-card {
+            background: #e3f0ff;
+            border: 2px solid #1976d2;
+            border-radius: 18px;
+            box-shadow: 0 2px 8px rgba(25,118,210,0.08);
+            padding: 1.5rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            transition: box-shadow 0.2s;
+        }
+        .user-card:hover {
+            box-shadow: 0 4px 16px rgba(25,118,210,0.18);
+        }
+        .user-name {
+            color: #1976d2;
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .user-info {
+            color: #333;
+            margin-bottom: 0.3rem;
+        }
+        .user-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .icon-btn {
+            background: none;
+            border: none;
+            padding: 0.25rem 0.4rem;
+            cursor: pointer;
+            outline: none;
+        }
+        .icon-btn:focus {
+            outline: 2px solid #1976d233;
+        }
+        .icon-edit {
+            color: #ff9800;
+            font-size: 1.25rem;
+        }
+        .icon-delete {
+            color: #e53935;
+            font-size: 1.25rem;
+        }
+        </style>
+        <div class="user-grid">
+            {% for user in users %}
+            <div class="user-card">
+                <div class="user-name">{{ user.full_name }}</div>
+                <div class="user-info"><strong>Email:</strong> {{ user.email }}</div>
+                <div class="user-info"><strong>Rol:</strong> {{ user.role }}</div>
+                <div class="user-actions">
+                    <a href="{{ url_for('users.edit', id=user.id) }}" class="icon-btn" title="Editar"><i class="bi bi-pencil icon-edit"></i></a>
+                    <form action="{{ url_for('users.delete', id=user.id) }}" method="post" style="display:inline;">
+                        {{ delete_form.csrf_token if delete_form is defined }}
+                        <button type="submit" class="icon-btn" title="Eliminar" onclick="return confirm('¿Seguro que deseas eliminar este usuario?');"><i class="bi bi-trash icon-delete"></i></button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-people text-muted" style="font-size: 4rem;"></i>
+                <h4 class="text-muted mt-3">No hay usuarios registrados</h4>
+                <p class="text-muted">Agrega usuarios para verlos aquí.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

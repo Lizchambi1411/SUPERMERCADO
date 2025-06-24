@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle de Cliente{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="avatar-circle me-3">
+                            {{ customer.first_name[0] }}{{ customer.last_name[0] }}
+                        </div>
+                        <div>
+                            <h3 class="fw-bold mb-0">{{ customer.first_name }} {{ customer.last_name }}</h3>
+                            <span class="badge status-{{ 'active' if customer.is_active else 'inactive' }}">
+                                {{ 'Activo' if customer.is_active else 'Inactivo' }}
+                            </span>
+                        </div>
+                    </div>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Email</dt>
+                        <dd class="col-sm-8">{{ customer.email or 'Sin email' }}</dd>
+                        <dt class="col-sm-4">Teléfono</dt>
+                        <dd class="col-sm-8">{{ customer.phone or 'Sin teléfono' }}</dd>
+                        <dt class="col-sm-4">Dirección</dt>
+                        <dd class="col-sm-8">{{ customer.address or 'Sin dirección' }}</dd>
+                        <dt class="col-sm-4">Identificación</dt>
+                        <dd class="col-sm-8">{{ customer.id_number or 'Sin ID' }}</dd>
+                        <dt class="col-sm-4">Tipo de Cliente</dt>
+                        <dd class="col-sm-8">{{ 'Individual' if customer.customer_type == 'individual' else 'Empresa' }}</dd>
+                    </dl>
+                    <div class="mt-4">
+                        <a href="{{ url_for('customers.edit', id=customer.id) }}" class="btn btn-gradient-primary me-2">Editar</a>
+                        <a href="{{ url_for('customers.index') }}" class="btn btn-outline-secondary">Volver</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

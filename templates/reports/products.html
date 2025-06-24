@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Reporte de Productos - SuperMarket Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 fw-bold text-dark">Reporte de Productos</h1>
+        <p class="text-muted mb-0">Análisis de inventario y productos más vendidos</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('reports.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Volver
+        </a>
+        <a href="{{ url_for('reports.export_products') }}" class="btn btn-success">
+            <i class="bi bi-download me-2"></i>Exportar CSV
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Low Stock Products -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-danger text-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Productos con Stock Bajo
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if low_stock %}
+                    {% for product in low_stock %}
+                    <div class="d-flex justify-content-between align-items-center py-2 {% if not loop.last %}border-bottom{% endif %}">
+                        <div>
+                            <div class="fw-semibold">{{ product.name }}</div>
+                            <small class="text-muted">{{ product.category.name }}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-danger">{{ product.stock_quantity }} {{ product.unit }}</div>
+                            <small class="text-muted">Mín: {{ product.min_stock }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">Todos los productos tienen stock suficiente</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Most Sold Products -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-success text-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-trophy me-2"></i>Productos Más Vendidos
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if most_sold %}
+                    {% for product in most_sold %}
+                    <div class="d-flex justify-content-between align-items-center py-2 {% if not loop.last %}border-bottom{% endif %}">
+                        <div>
+                            <div class="fw-semibold">{{ product.name }}</div>
+                            <small class="text-muted">Stock: {{ product.stock_quantity }}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-success">{{ product.total_sold }} vendidos</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-graph-down text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">No hay datos de ventas disponibles</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Products without Sales -->
+{% if no_sales %}
+<div class="card border-0 shadow-sm mt-4">
+    <div class="card-header bg-warning text-dark py-3">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-box me-2"></i>Productos Sin Ventas
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for product in no_sales %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="border rounded p-3">
+                    <div class="fw-semibold">{{ product.name }}</div>
+                    <small class="text-muted">{{ product.category.name }}</small>
+                    <div class="mt-2">
+                        <span class="badge bg-secondary">Sin ventas</span>
+                        <span class="badge bg-info">Stock: {{ product.stock_quantity }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Summary Statistics -->
+<div class="card border-0 shadow-sm mt-4">
+    <div class="card-header bg-primary text-white py-3">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-graph-up me-2"></i>Estadísticas Generales
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-3">
+                <div class="bg-light rounded p-4">
+                    <h4 class="fw-bold text-primary">{{ low_stock|length + most_sold|length + no_sales|length }}</h4>
+                    <p class="text-muted mb-0">Total Productos</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="bg-light rounded p-4">
+                    <h4 class="fw-bold text-danger">{{ low_stock|length }}</h4>
+                    <p class="text-muted mb-0">Stock Bajo</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="bg-light rounded p-4">
+                    <h4 class="fw-bold text-success">{{ most_sold|length }}</h4>
+                    <p class="text-muted mb-0">Con Ventas</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="bg-light rounded p-4">
+                    <h4 class="fw-bold text-warning">{{ no_sales|length }}</h4>
+                    <p class="text-muted mb-0">Sin Ventas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

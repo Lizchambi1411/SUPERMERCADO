@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - SuperMarket Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 fw-bold text-dark">{{ title }}</h1>
+        <p class="text-muted mb-0">{{ 'Modifica la información del proveedor' if supplier else 'Completa la información del nuevo proveedor' }}</p>
+    </div>
+    <a href="{{ url_for('suppliers.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Volver a Proveedores
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="POST" class="needs-validation" novalidate>
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.name.id }}" class="form-label fw-semibold">
+                                <i class="bi bi-building me-2"></i>Nombre del Proveedor *
+                            </label>
+                            {{ form.name(class="form-control form-control-lg", id=form.name.id, required=true) }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.name.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="{{ form.contact_person.id }}" class="form-label fw-semibold">
+                                <i class="bi bi-person me-2"></i>Persona de Contacto
+                            </label>
+                            {{ form.contact_person(class="form-control form-control-lg", id=form.contact_person.id) }}
+                            {% if form.contact_person.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.contact_person.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="{{ form.email.id }}" class="form-label fw-semibold">
+                                <i class="bi bi-envelope me-2"></i>Email
+                            </label>
+                            {{ form.email(class="form-control form-control-lg", id=form.email.id) }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.email.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="{{ form.phone.id }}" class="form-label fw-semibold">
+                                <i class="bi bi-telephone me-2"></i>Teléfono
+                            </label>
+                            {{ form.phone(class="form-control form-control-lg", id=form.phone.id) }}
+                            {% if form.phone.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.phone.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-12">
+                            <label for="{{ form.address.id }}" class="form-label fw-semibold">
+                                <i class="bi bi-geo-alt me-2"></i>Dirección
+                            </label>
+                            {{ form.address(class="form-control", id=form.address.id, rows="3") }}
+                            {% if form.address.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.address.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                {{ form.is_active(class="form-check-input", id=form.is_active.id) }}
+                                <label class="form-check-label fw-semibold" for="{{ form.is_active.id }}">
+                                    Proveedor activo
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-end gap-3">
+                        <a href="{{ url_for('suppliers.index') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle me-2"></i>{{ 'Actualizar' if supplier else 'Guardar' }} Proveedor
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
+{% endblock %}

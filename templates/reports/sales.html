@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Reporte de Ventas - SuperMarket Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 fw-bold text-dark">Reporte de Ventas</h1>
+        <p class="text-muted mb-0">Análisis detallado de ventas por período</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('reports.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Volver
+        </a>
+        <a href="{{ url_for('reports.export_sales') }}" class="btn btn-success">
+            <i class="bi bi-download me-2"></i>Exportar CSV
+        </a>
+    </div>
+</div>
+
+<!-- Date Filter -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="start_date" class="form-label">Fecha Inicio</label>
+                <input type="date" class="form-control" id="start_date" name="start_date" 
+                       value="{{ start_date.strftime('%Y-%m-%d') }}">
+            </div>
+            <div class="col-md-4">
+                <label for="end_date" class="form-label">Fecha Fin</label>
+                <input type="date" class="form-control" id="end_date" name="end_date" 
+                       value="{{ end_date.strftime('%Y-%m-%d') }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-2"></i>Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <div class="card-body text-white text-center">
+                <i class="bi bi-currency-dollar" style="font-size: 2rem;"></i>
+                <h3 class="fw-bold mt-2">Bs{{ "%.2f"|format(total_sales) }}</h3>
+                <p class="mb-0">Ventas Totales</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
+            <div class="card-body text-white text-center">
+                <i class="bi bi-cart-check" style="font-size: 2rem;"></i>
+                <h3 class="fw-bold mt-2">{{ total_orders }}</h3>
+                <p class="mb-0">Transacciones</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+            <div class="card-body text-white text-center">
+                <i class="bi bi-calculator" style="font-size: 2rem;"></i>
+                <h3 class="fw-bold mt-2">Bs{{ "%.2f"|format(total_sales / total_orders if total_orders > 0 else 0) }}</h3>
+                <p class="mb-0">Promedio por Venta</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Sales Chart -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-bar-chart me-2"></i>Ventas por Día
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if daily_sales %}
+                <canvas id="salesChart" height="300"></canvas>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-graph-up text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-2">No hay datos para mostrar en el período seleccionado</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Products -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-trophy me-2"></i>Productos Más Vendidos
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if top_products %}
+                    {% for product in top_products %}
+                    <div class="d-flex justify-content-between align-items-center py-2 {% if not loop.last %}border-bottom{% endif %}">
+                        <div>
+                            <div class="fw-semibold">{{ product.name }}</div>
+                            <small class="text-muted">{{ product.total_sold }} unidades</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-success">Bs{{ "%.2f"|format(product.total_revenue) }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-box text-muted" style="font-size: 2rem;"></i>
+                        <p class="text-muted mt-2">No hay productos vendidos</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Daily Sales Table -->
+{% if daily_sales %}
+<div class="card border-0 shadow-sm mt-4">
+    <div class="card-header bg-white border-0 py-3">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-calendar3 me-2"></i>Ventas Diarias Detalladas
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Transacciones</th>
+                        <th>Total Vendido</th>
+                        <th>Promedio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in daily_sales %}
+                    <tr>
+                        <td class="fw-semibold">{{ sale.date }}</td>
+                        <td>{{ sale.count }}</td>
+                        <td class="fw-bold text-success">Bs{{ "%.2f"|format(sale.total) }}</td>
+                        <td>Bs{{ "%.2f"|format(sale.total / sale.count if sale.count > 0 else 0) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <th>TOTAL</th>
+                        <th>{{ total_orders }}</th>
+                        <th class="text-success">Bs{{ "%.2f"|format(total_sales) }}</th>
+                        <th>Bs{{ "%.2f"|format(total_sales / total_orders if total_orders > 0 else 0) }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if daily_sales %}
+<script>
+const ctx = document.getElementById('salesChart').getContext('2d');
+const salesChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: [{% for sale in daily_sales %}'{{ sale.date }}'{% if not loop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Ventas (Bs)',
+            data: [{% for sale in daily_sales %}{{ sale.total }}{% if not loop.last %},{% endif %}{% endfor %}],
+            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+            borderColor: 'rgba(16, 185, 129, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return 'Bs' + value.toFixed(2);
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

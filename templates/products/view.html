@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+
+
+{% block title %}Detalle de Producto{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="avatar-circle me-3">
+                            {{ product.name[0] }}
+                        </div>
+                        <div>
+                            <h3 class="fw-bold mb-0">{{ product.name }}</h3>
+                            <span class="badge status-{{ 'active' if product.is_active else 'inactive' }}">
+                                {{ 'Activo' if product.is_active else 'Inactivo' }}
+                            </span>
+                        </div>
+                    </div>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Descripción</dt>
+                        <dd class="col-sm-8">{{ product.description or 'Sin descripción' }}</dd>
+                        <dt class="col-sm-4">Categoría</dt>
+                        <dd class="col-sm-8">{{ product.category.name if product.category else 'Sin categoría' }}</dd>
+                        <dt class="col-sm-4">Precio de venta</dt>
+                        <dd class="col-sm-8">Bs{{ '%.2f'|format(product.selling_price) }}</dd>
+                        <dt class="col-sm-4">Stock</dt>
+                        <dd class="col-sm-8">{{ product.stock_quantity }}</dd>
+                        <dt class="col-sm-4">Proveedor</dt>
+                        <dd class="col-sm-8">{{ product.supplier.name if product.supplier else 'Sin proveedor' }}</dd>
+                        <dt class="col-sm-4">Código de barras</dt>
+                        <dd class="col-sm-8">{{ product.barcode or 'Sin código' }}</dd>
+                        <dt class="col-sm-4">Unidad</dt>
+                        <dd class="col-sm-8">{{ product.unit }}</dd>
+                    </dl>
+                    <div class="mt-4">
+                        <a href="{{ url_for('products.edit', id=product.id) }}" class="btn btn-gradient-primary me-2">Editar</a>
+                        <a href="{{ url_for('products.index') }}" class="btn btn-outline-secondary">Volver</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

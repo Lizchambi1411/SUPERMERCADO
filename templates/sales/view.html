@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Venta {{ sale.sale_number }} - SuperMarket Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 fw-bold text-dark">Venta {{ sale.sale_number }}</h1>
+        <p class="text-muted mb-0">Detalles de la transacción</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('sales.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Volver
+        </a>
+        <a href="{{ url_for('sales.edit', id=sale.id) }}" class="btn btn-outline-primary">
+            <i class="bi bi-pencil me-2"></i>Editar
+        </a>
+        <a href="{{ url_for('sales.receipt', id=sale.id) }}" class="btn btn-primary">
+            <i class="bi bi-receipt me-2"></i>Recibo
+        </a>
+        {% if sale.status == 'completed' %}
+        <form method="POST" action="{{ url_for('sales.cancel', id=sale.id) }}" class="d-inline" 
+              onsubmit="return confirm('¿Estás seguro de cancelar esta venta?')">
+            {{ csrf_token() }}
+            <button type="submit" class="btn btn-outline-danger">
+                <i class="bi bi-x-circle me-2"></i>Cancelar
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Información de la Venta -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle me-2"></i>Información de la Venta
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Número de Venta</label>
+                        <p class="fw-bold">{{ sale.sale_number }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Fecha y Hora</label>
+                        <p class="fw-bold">{{ sale.sale_date.strftime('%d/%m/%Y %H:%M') }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Cliente</label>
+                        <p class="fw-bold">
+                            {% if sale.customer %}
+                                {{ sale.customer.full_name }}
+                                <br><small class="text-muted">{{ sale.customer.email }}</small>
+                            {% else %}
+                                Cliente General
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Vendedor</label>
+                        <p class="fw-bold">{{ sale.seller.full_name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Método de Pago</label>
+                        <p class="fw-bold">
+                            {% if sale.payment_method == 'efectivo' %}
+                                💵 Efectivo
+                            {% elif sale.payment_method == 'tarjeta' %}
+                                💳 Tarjeta
+                            {% else %}
+                                🏦 Transferencia
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Estado</label>
+                        <p>
+                            {% if sale.status == 'completed' %}
+                                <span class="badge bg-success fs-6">Completada</span>
+                            {% elif sale.status == 'pending' %}
+                                <span class="badge bg-warning fs-6">Pendiente</span>
+                            {% else %}
+                                <span class="badge bg-danger fs-6">Cancelada</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% if sale.notes %}
+                    <div class="col-12">
+                        <label class="form-label text-muted">Notas</label>
+                        <p class="fw-bold">{{ sale.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos Vendidos -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-box-seam me-2"></i>Productos Vendidos
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Producto</th>
+                                <th>Precio Unit.</th>
+                                <th>Cantidad</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in sale.sale_items %}
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">{{ item.product.name }}</div>
+                                    <small class="text-muted">{{ item.product.category.name }}</small>
+                                </td>
+                                <td>Bs{{ "%.2f"|format(item.unit_price) }}</td>
+                                <td>{{ item.quantity }} {{ item.product.unit }}</td>
+                                <td class="fw-bold">Bs{{ "%.2f"|format(item.subtotal) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen Financiero -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-calculator me-2"></i>Resumen Financiero
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Subtotal:</span>
+                    <span class="fw-bold">Bs{{ "%.2f"|format(sale.subtotal) }}</span>
+                </div>
+                
+                {% if sale.discount_amount > 0 %}
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Descuento:</span>
+                    <span class="fw-bold text-danger">-Bs{{ "%.2f"|format(sale.discount_amount) }}</span>
+                </div>
+                {% endif %}
+                
+                <hr>
+                
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="h5 mb-0">Total:</span>
+                    <span class="h4 mb-0 fw-bold text-success">Bs{{ "%.2f"|format(sale.total_amount) }}</span>
+                </div>
+                
+                <div class="bg-light rounded p-3 mt-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <small class="text-muted">Total de artículos:</small>
+                        <small class="fw-bold">{{ sale.sale_items|sum(attribute='quantity') }}</small>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <small class="text-muted">Productos diferentes:</small>
+                        <small class="fw-bold">{{ sale.sale_items|length }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Acciones Rápidas -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white border-0 py-3">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-lightning me-2"></i>Acciones Rápidas
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('sales.receipt', id=sale.id) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-printer me-2"></i>Imprimir Recibo
+                    </a>
+                    <a href="{{ url_for('sales.new') }}" class="btn btn-outline-success">
+                        <i class="bi bi-plus-circle me-2"></i>Nueva Venta
+                    </a>
+                    {% if sale.customer %}
+                    <a href="{{ url_for('customers.view', id=sale.customer.id) }}" class="btn btn-outline-info">
+                        <i class="bi bi-person me-2"></i>Ver Cliente
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

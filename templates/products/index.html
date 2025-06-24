@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Productos - SuperMarket Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="h2 fw-bold text-dark">Productos</h1>
+        <p class="text-muted mb-0">Listado de productos activos en el sistema</p>
+    </div>
+    <form class="d-flex align-items-center" method="get" action="{{ url_for('products.index') }}" style="gap:0.5rem;">
+        <input type="text" name="search" class="form-control" placeholder="Buscar producto..." value="{{ request.args.get('search', '') }}" style="min-width:180px;">
+        <button type="submit" class="btn btn-outline-primary" title="Buscar"><i class="bi bi-search"></i></button>
+    </form>
+    <a href="{{ url_for('products.add') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-2"></i>Agregar Producto
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-primary text-white py-3">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-box-seam me-2"></i>Productos Activos
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if products.items|length > 0 %}
+        <style>
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+        }
+        .product-card {
+            background: #f7f0ff;
+            border: 2px solid #a259ff;
+            border-radius: 18px;
+            box-shadow: 0 2px 8px rgba(162,89,255,0.08);
+            padding: 1.5rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            transition: box-shadow 0.2s;
+        }
+        .product-card:hover {
+            box-shadow: 0 4px 16px rgba(162,89,255,0.18);
+        }
+        .product-name {
+            color: #a259ff;
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .product-info {
+            color: #333;
+            margin-bottom: 0.3rem;
+        }
+        .product-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .badge-stock {
+            font-size: 0.9em;
+            padding: 0.3em 0.7em;
+            border-radius: 12px;
+            color: #fff;
+            background: #a259ff;
+        }
+        .icon-btn {
+            background: none;
+            border: none;
+            padding: 0.25rem 0.4rem;
+            cursor: pointer;
+            outline: none;
+        }
+        .icon-btn:focus {
+            outline: 2px solid #a259ff33;
+        }
+        .icon-view {
+            color: #1976d2;
+            font-size: 1.25rem;
+        }
+        .icon-edit {
+            color: #ff9800;
+            font-size: 1.25rem;
+        }
+        .icon-delete {
+            color: #e53935;
+            font-size: 1.25rem;
+        }
+        </style>
+        <div class="product-grid">
+            {% for product in products.items %}
+            <div class="product-card">
+                <div class="product-name">{{ product.name }}</div>
+                <div class="product-info"><strong>Categoría:</strong> {{ product.category.name if product.category else 'Sin categoría' }}</div>
+                <div class="product-info"><strong>Precio Venta:</strong> Bs{{ '%.2f'|format(product.selling_price) }}</div>
+                <div class="product-info"><span class="badge-stock">Stock: {{ product.stock_quantity }}</span></div>
+                <div class="product-actions">
+                    <a href="{{ url_for('products.view', id=product.id) }}" class="icon-btn" title="Ver"><i class="bi bi-eye icon-view"></i></a>
+                    <a href="{{ url_for('products.edit', id=product.id) }}" class="icon-btn" title="Editar"><i class="bi bi-pencil icon-edit"></i></a>
+                    <form action="{{ url_for('products.delete', id=product.id) }}" method="post" style="display:inline;">
+                        {{ delete_form.csrf_token }}
+                        <button type="submit" class="icon-btn" title="Eliminar" onclick="return confirm('¿Seguro que deseas eliminar este producto?');"><i class="bi bi-trash icon-delete"></i></button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+            <!-- Paginación -->
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if products.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('products.index', page=products.prev_num, search=search, category=category_id) }}">Anterior</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                    {% endif %}
+                    {% for page_num in products.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num == products.page %}
+                                <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                            {% else %}
+                                <li class="page-item"><a class="page-link" href="{{ url_for('products.index', page=page_num, search=search, category=category_id) }}">{{ page_num }}</a></li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if products.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('products.index', page=products.next_num, search=search, category=category_id) }}">Siguiente</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-box-seam text-muted" style="font-size: 4rem;"></i>
+                <h4 class="text-muted mt-3">No hay productos activos</h4>
+                <p class="text-muted">Agrega productos para verlos aquí.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

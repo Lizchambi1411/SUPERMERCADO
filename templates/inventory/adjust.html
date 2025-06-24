@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Ajustar Stock - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 fw-bold text-dark">Ajustar Stock</h1>
+        <p class="text-muted mb-0">{{ product.name }}</p>
+    </div>
+    <a href="{{ url_for('inventory.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Volver al Inventario
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <!-- Product Info -->
+                <div class="bg-light rounded p-4 mb-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="fw-bold mb-2">{{ product.name }}</h5>
+                            <p class="text-muted mb-1">Categoría: {{ product.category.name }}</p>
+                            <p class="text-muted mb-0">Código: {{ product.barcode or 'Sin código' }}</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="bg-white rounded p-3">
+                                <h6 class="text-muted mb-1">Stock Actual</h6>
+                                <h3 class="fw-bold text-primary mb-0">{{ product.stock_quantity }} {{ product.unit }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="POST" class="needs-validation" novalidate>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="new_quantity" class="form-label fw-semibold">
+                                <i class="bi bi-123 me-2"></i>Nueva Cantidad *
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control form-control-lg" 
+                                       id="new_quantity" name="new_quantity" 
+                                       value="{{ product.stock_quantity }}" 
+                                       min="0" required>
+                                <span class="input-group-text">{{ product.unit }}</span>
+                            </div>
+                            <small class="text-muted">Stock mínimo: {{ product.min_stock }} {{ product.unit }}</small>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="reason" class="form-label fw-semibold">
+                                <i class="bi bi-chat-text me-2"></i>Motivo del Ajuste *
+                            </label>
+                            <select class="form-select form-select-lg" id="reason" name="reason" required>
+                                <option value="">Seleccionar motivo...</option>
+                                <option value="Inventario físico">Inventario físico</option>
+                                <option value="Corrección de error">Corrección de error</option>
+                                <option value="Producto dañado">Producto dañado</option>
+                                <option value="Producto vencido">Producto vencido</option>
+                                <option value="Pérdida">Pérdida</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label for="notes" class="form-label fw-semibold">
+                                <i class="bi bi-journal-text me-2"></i>Notas Adicionales
+                            </label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                      placeholder="Detalles adicionales sobre el ajuste..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Preview -->
+                    <div class="bg-light rounded p-4 mt-4" id="adjustmentPreview" style="display: none;">
+                        <h6 class="fw-bold mb-3">Vista Previa del Ajuste</h6>
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <div class="border-end">
+                                    <h6 class="text-muted">Stock Actual</h6>
+                                    <h4 class="fw-bold text-primary">{{ product.stock_quantity }} {{ product.unit }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="border-end">
+                                    <h6 class="text-muted">Diferencia</h6>
+                                    <h4 class="fw-bold" id="difference">0 {{ product.unit }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-muted">Nuevo Stock</h6>
+                                <h4 class="fw-bold text-success" id="newStock">{{ product.stock_quantity }} {{ product.unit }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-end gap-3">
+                        <a href="{{ url_for('inventory.index') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-warning btn-lg">
+                            <i class="bi bi-gear me-2"></i>Ajustar Stock
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const currentStock = {{ product.stock_quantity }};
+const unit = '{{ product.unit }}';
+
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Update preview when quantity changes
+document.getElementById('new_quantity').addEventListener('input', function() {
+    const newQuantity = parseInt(this.value) || 0;
+    const difference = newQuantity - currentStock;
+    const preview = document.getElementById('adjustmentPreview');
+    
+    if (newQuantity !== currentStock) {
+        preview.style.display = 'block';
+        
+        // Update difference
+        const diffElement = document.getElementById('difference');
+        if (difference > 0) {
+            diffElement.textContent = `+${difference} ${unit}`;
+            diffElement.className = 'fw-bold text-success';
+        } else if (difference < 0) {
+            diffElement.textContent = `${difference} ${unit}`;
+            diffElement.className = 'fw-bold text-danger';
+        } else {
+            diffElement.textContent = `0 ${unit}`;
+            diffElement.className = 'fw-bold text-muted';
+        }
+        
+        // Update new stock
+        document.getElementById('newStock').textContent = `${newQuantity} ${unit}`;
+    } else {
+        preview.style.display = 'none';
+    }
+});
+
+// Confirmation before submit
+document.querySelector('form').addEventListener('submit', function(e) {
+    const newQuantity = parseInt(document.getElementById('new_quantity').value) || 0;
+    const difference = newQuantity - currentStock;
+    
+    if (Math.abs(difference) > 0) {
+        const action = difference > 0 ? 'aumentar' : 'reducir';
+        const message = `¿Estás seguro de ${action} el stock de ${Math.abs(difference)} ${unit}?`;
+        
+        if (!confirm(message)) {
+            e.preventDefault();
+        }
+    }
+});
+</script>
+{% endblock %}

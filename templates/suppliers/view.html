@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}{{ supplier.name }} - SuperMarket Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 fw-bold text-dark">{{ supplier.name }}</h1>
+        <p class="text-muted mb-0">Información detallada del proveedor</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('suppliers.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Volver
+        </a>
+        <a href="{{ url_for('suppliers.edit', id=supplier.id) }}" class="btn btn-outline-primary">
+            <i class="bi bi-pencil me-2"></i>Editar
+        </a>
+        <form method="POST" action="{{ url_for('suppliers.delete', id=supplier.id) }}" class="d-inline" 
+              onsubmit="return confirm('¿Estás seguro de eliminar este proveedor?')">
+            {{ csrf_token() }}
+            <button type="submit" class="btn btn-outline-danger">
+                <i class="bi bi-trash me-2"></i>Eliminar
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Información del Proveedor -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle me-2"></i>Información del Proveedor
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Nombre del Proveedor</label>
+                        <p class="fw-bold h5">{{ supplier.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Persona de Contacto</label>
+                        <p class="fw-bold">{{ supplier.contact_person or 'No especificado' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Email</label>
+                        <p class="fw-bold">
+                            {% if supplier.email %}
+                                <a href="mailto:{{ supplier.email }}" class="text-decoration-none">
+                                    <i class="bi bi-envelope me-2"></i>{{ supplier.email }}
+                                </a>
+                            {% else %}
+                                No especificado
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Teléfono</label>
+                        <p class="fw-bold">
+                            {% if supplier.phone %}
+                                <a href="tel:{{ supplier.phone }}" class="text-decoration-none">
+                                    <i class="bi bi-telephone me-2"></i>{{ supplier.phone }}
+                                </a>
+                            {% else %}
+                                No especificado
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted">Dirección</label>
+                        <p class="fw-bold">
+                            {% if supplier.address %}
+                                <i class="bi bi-geo-alt me-2"></i>{{ supplier.address }}
+                            {% else %}
+                                No especificada
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Estado</label>
+                        <p>
+                            <span class="badge {{ 'bg-success' if supplier.is_active else 'bg-danger' }} fs-6">
+                                {{ 'Activo' if supplier.is_active else 'Inactivo' }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Fecha de Registro</label>
+                        <p class="fw-bold">{{ supplier.created_at.strftime('%d/%m/%Y') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos del Proveedor -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-box-seam me-2"></i>Productos del Proveedor
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if supplier.products %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Categoría</th>
+                                    <th>Precio Costo</th>
+                                    <th>Stock</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in supplier.products %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">{{ product.name }}</div>
+                                        <small class="text-muted">{{ product.barcode or 'Sin código' }}</small>
+                                    </td>
+                                    <td>{{ product.category.name }}</td>
+                                    <td>${{ "%.2f"|format(product.cost_price) }}</td>
+                                    <td>
+                                        <span class="fw-bold {{ 'text-danger' if product.stock_quantity <= product.min_stock else 'text-success' }}">
+                                            {{ product.stock_quantity }} {{ product.unit }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ 'bg-success' if product.is_active else 'bg-secondary' }}">
+                                            {{ 'Activo' if product.is_active else 'Inactivo' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-box text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">No hay productos registrados para este proveedor</p>
+                        <a href="{{ url_for('products.add') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-plus-circle me-2"></i>Agregar Producto
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up me-2"></i>Estadísticas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="bg-light rounded p-4">
+                        <h3 class="fw-bold text-primary mb-1">{{ supplier.products|length }}</h3>
+                        <p class="text-muted mb-0">Productos Totales</p>
+                    </div>
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h5 class="fw-bold text-success">{{ supplier.products|selectattr('is_active')|list|length }}</h5>
+                            <small class="text-muted">Activos</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h5 class="fw-bold text-warning">{{ supplier.products|rejectattr('is_active')|list|length }}</h5>
+                            <small class="text-muted">Inactivos</small>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if supplier.products %}
+                <hr>
+                <div class="text-center">
+                    <h6 class="fw-bold text-info">
+                        ${{ "%.2f"|format(supplier.products|selectattr('is_active')|sum(attribute='cost_price')) }}
+                    </h6>
+                    <small class="text-muted">Valor Total en Costo</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Acciones Rápidas -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white border-0 py-3">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-lightning me-2"></i>Acciones Rápidas
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('suppliers.edit', id=supplier.id) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-pencil me-2"></i>Editar Proveedor
+                    </a>
+                    <a href="{{ url_for('products.add') }}?supplier_id={{ supplier.id }}" class="btn btn-outline-success">
+                        <i class="bi bi-plus-circle me-2"></i>Agregar Producto
+                    </a>
+                    {% if supplier.email %}
+                    <a href="mailto:{{ supplier.email }}" class="btn btn-outline-info">
+                        <i class="bi bi-envelope me-2"></i>Enviar Email
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
